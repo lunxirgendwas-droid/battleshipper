@@ -1,10 +1,14 @@
+import type { Redis } from "ioredis";
 import { RoomState } from "./types";
 
-const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
-const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
-const useUpstash = !!(UPSTASH_URL && UPSTASH_TOKEN);
+const REDIS_URL = process.env.REDIS_URL;
+const useRedis = !!REDIS_URL;
 
-const g = globalThis as unknown as { __bs_rooms?: Map<string, RoomState> };
+const g = globalThis as unknown as {
+  __bs_rooms?: Map<string, RoomState>;
+  __bs_redis?: Redis | null;
+  __bs_redis_promise?: Promise<Redis> | null;
+};
 if (!g.__bs_rooms) g.__bs_rooms = new Map();
 const mem = g.__bs_rooms;
 
@@ -12,31 +16,37 @@ const PREFIX = "bs:room:";
 const TTL_SECONDS = 60 * 60 * 4;
 const ALPH = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
-async function upstash(args: (string | number)[]): Promise<any> {
-  const res = await fetch(UPSTASH_URL!, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${UPSTASH_TOKEN}`,
-    },
-    body: JSON.stringify(args),
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const data = await res.json();
-  return data.result;
+async function getClient(): Promise<Redis> {
+  if (g.__bs_redis) return g.__bs_redis;
+  if (!g.__bs_redis_promise) {
+    g.__bs_redis_promise = (async () => {
+      const { default: Redis } = await import("ioredis");
+      const isTls = REDIS_URL!.startsWith("rediss://");
+      const client = new Redis(REDIS_URL!, {
+        lazyConnect: false,
+        maxRetriesPerRequest: 3,
+        enableReadyCheck: true,
+        ...(isTls ? { tls: {} } : {}),
+      });
+      client.on("error", (e) => console.error("Redis error:", e.message));
+      g.__bs_redis = client;
+      return client;
+    })();
+  }
+  return g.__bs_redis_promise;
 }
 
 export async function getRoom(code: string): Promise<RoomState | null> {
   const key = code.toUpperCase();
-  if (useUpstash) {
+  if (useRedis) {
     try {
-      const raw = await upstash(["GET", PREFIX + key]);
+      const c = await getClient();
+      const raw = await c.get(PREFIX + key);
       if (!raw) return null;
       return JSON.parse(raw) as RoomState;
     } catch (e) {
-      console.error("Upstash GET failed", e);
-      return null;
+      console.error("Redis GET failed", e);
+      return mem.get(key) ?? null;
     }
   }
   return mem.get(key) ?? null;
@@ -44,12 +54,13 @@ export async function getRoom(code: string): Promise<RoomState | null> {
 
 export async function saveRoom(r: RoomState): Promise<void> {
   const key = r.code.toUpperCase();
-  if (useUpstash) {
+  if (useRedis) {
     try {
-      await upstash(["SET", PREFIX + key, JSON.stringify(r), "EX", TTL_SECONDS]);
+      const c = await getClient();
+      await c.set(PREFIX + key, JSON.stringify(r), "EX", TTL_SECONDS);
       return;
     } catch (e) {
-      console.error("Upstash SET failed, falling back to memory", e);
+      console.error("Redis SET failed, falling back to memory", e);
     }
   }
   mem.set(key, r);
@@ -57,8 +68,11 @@ export async function saveRoom(r: RoomState): Promise<void> {
 
 export async function deleteRoom(code: string): Promise<void> {
   const key = code.toUpperCase();
-  if (useUpstash) {
-    try { await upstash(["DEL", PREFIX + key]); } catch {}
+  if (useRedis) {
+    try {
+      const c = await getClient();
+      await c.del(PREFIX + key);
+    } catch {}
   }
   mem.delete(key);
 }
@@ -74,7 +88,7 @@ export async function genCode(): Promise<string> {
 }
 
 export async function purgeStale(): Promise<void> {
-  if (useUpstash) return;
+  if (useRedis) return;
   const now = Date.now();
   for (const [k, r] of mem.entries()) {
     if (now - r.updatedAt > TTL_SECONDS * 1000) mem.delete(k);
