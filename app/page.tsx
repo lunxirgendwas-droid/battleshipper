@@ -53,7 +53,7 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen flex flex-col">
-      <header className="px-6 md:px-12 py-6 flex items-center justify-between">
+      <header className="px-4 md:px-12 py-4 md:py-6 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <Logo />
           <span className="sans font-medium text-ink">Battleshipper</span>
@@ -65,23 +65,23 @@ export default function HomePage() {
         </div>
       </header>
 
-      <section className="flex-1 px-6 md:px-12 grid lg:grid-cols-[1.1fr,1fr] gap-10 lg:gap-16 max-w-6xl mx-auto w-full pt-6 lg:pt-16 pb-16">
+      <section className="flex-1 px-4 md:px-12 grid lg:grid-cols-[1.1fr,1fr] gap-8 lg:gap-16 max-w-6xl mx-auto w-full pt-4 lg:pt-16 pb-12">
         <div className="fade-up">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-shell text-rose text-xs sans font-medium mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-rose" /> Schiffe versenken · online · zu zweit
           </div>
-          <h1 className="font-medium tracking-tight text-ink text-[clamp(3.2rem,9vw,6.5rem)] leading-[0.95]">
+          <h1 className="font-medium tracking-tight text-ink text-[clamp(2.6rem,11vw,6.5rem)] leading-[0.95]">
             Zwei Flotten.
             <br/>
             <span className="serif-it text-rose font-normal">Ein Ozean.</span>
             <br/>
             Ein Sieger.
           </h1>
-          <p className="mt-7 max-w-md text-muted text-lg leading-relaxed">
+          <p className="mt-5 md:mt-7 max-w-md text-muted text-base md:text-lg leading-relaxed">
             Klassisches Schiffe-Versenken, gespielt im Browser. Erstelle einen Raum, teile den Code, und versenke die Flotte deines Gegners — Zelle für Zelle.
           </p>
 
-          <ol id="wie" className="mt-12 space-y-5 max-w-md">
+          <ol id="wie" className="mt-8 md:mt-12 space-y-4 md:space-y-5 max-w-md">
             {[
               ["01", "Raum erstellen", "Du bekommst einen 5-Zeichen-Code."],
               ["02", "Code teilen", "Dein Mitspieler tritt damit bei."],

@@ -6,6 +6,7 @@ import { getPlayerId, getStoredName } from "@/lib/playerId";
 import { GRID, Orientation, PlacedShip, PublicView, SHIP_SPECS, ShipKey } from "@/lib/types";
 import { canPlace, randomFleet, shipCells } from "@/lib/game";
 import ThemeToggle from "../../ThemeToggle";
+import CanvasBoard from "../../CanvasBoard";
 
 type Phase = PublicView["status"];
 
@@ -94,7 +95,7 @@ export default function RoomPage() {
   return (
     <main className="min-h-screen flex flex-col">
       <TopBar code={code} view={view} />
-      <section className="flex-1 px-4 md:px-8 py-6 max-w-6xl mx-auto w-full">
+      <section className="flex-1 px-3 md:px-6 lg:px-8 py-4 md:py-6 max-w-6xl mx-auto w-full pb-28 md:pb-6">
         {view.status === "warten" && <WaitingPanel code={code} />}
         {view.status === "platzieren" && (
           <PlacementPanel
@@ -128,22 +129,36 @@ function TopBar({ code, view }: { code: string; view: PublicView }) {
   const [copied, setCopied] = useState(false);
   function copy() { navigator.clipboard?.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 1200); }
   return (
-    <header className="border-b border-line/80 px-4 md:px-8 py-4 flex flex-wrap items-center gap-4 justify-between bg-paper/70 backdrop-blur">
-      <button onClick={copy} className="group flex items-center gap-3 text-left">
-        <div className="w-9 h-9 rounded-xl bg-shell flex items-center justify-center text-rose">⚓</div>
-        <div>
-          <div className="text-[10px] sans uppercase tracking-wider text-muted">Raumcode {copied && <span className="text-rose ml-1">kopiert ✓</span>}</div>
-          <div className="mono text-ink text-xl tracking-[0.35em] group-hover:text-rose transition">{code}</div>
+    <header className="border-b border-line/80 px-3 md:px-8 py-3 md:py-4 bg-paper/70 backdrop-blur sticky top-0 z-30">
+      <div className="flex items-center justify-between gap-3 max-w-6xl mx-auto">
+        <button onClick={copy} className="group flex items-center gap-2.5 min-w-0">
+          <div className="w-9 h-9 shrink-0 rounded-xl bg-shell flex items-center justify-center text-rose text-lg">⚓</div>
+          <div className="text-left min-w-0">
+            <div className="text-[10px] sans uppercase tracking-wider text-muted leading-tight">
+              Code {copied && <span className="text-rose ml-1">kopiert ✓</span>}
+            </div>
+            <div className="mono text-ink text-base md:text-xl tracking-[0.25em] md:tracking-[0.35em] group-hover:text-rose transition leading-tight">{code}</div>
+          </div>
+        </button>
+        <div className="hidden md:block">
+          <StatusBadge status={view.status} turnMe={view.you !== null && view.turn === view.you} />
         </div>
-      </button>
-      <div className="order-3 md:order-2 w-full md:w-auto">
-        <StatusBadge status={view.status} turnMe={view.you !== null && view.turn === view.you} />
+        <div className="flex items-center gap-2 shrink-0">
+          <ThemeToggle />
+        </div>
       </div>
-      <div className="flex items-center gap-2 md:gap-3 order-2 md:order-3">
+      <div className="mt-2 flex items-center justify-between gap-2 max-w-6xl mx-auto md:hidden">
+        <StatusBadge status={view.status} turnMe={view.you !== null && view.turn === view.you} />
+        <div className="flex items-center gap-1.5 text-xs">
+          <PlayerChip label={me?.name || "—"} side="me" active={view.you !== null && view.turn === view.you && view.status === "spielen"} compact />
+          <span className="serif-it text-muted text-xs">vs</span>
+          <PlayerChip label={enemy?.name || "—"} side="foe" active={view.you !== null && view.turn !== view.you && view.status === "spielen"} compact />
+        </div>
+      </div>
+      <div className="mt-2 hidden md:flex items-center justify-end gap-2 max-w-6xl mx-auto">
         <PlayerChip label={me?.name || "—"} side="me" active={view.you !== null && view.turn === view.you && view.status === "spielen"} />
         <span className="serif-it text-muted">vs</span>
         <PlayerChip label={enemy?.name || "wartet"} side="foe" active={view.you !== null && view.turn !== view.you && view.status === "spielen"} />
-        <ThemeToggle className="ml-1" />
       </div>
     </header>
   );
@@ -158,17 +173,17 @@ function StatusBadge({ status, turnMe }: { status: Phase; turnMe: boolean }) {
   };
   const s = map[status];
   return (
-    <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${s.color} sans font-medium text-sm`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${turnMe && status === "spielen" ? "bg-surface pulse-dot" : "bg-current opacity-60"}`} />
+    <div className={`inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full ${s.color} sans font-medium text-xs md:text-sm whitespace-nowrap`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${turnMe && status === "spielen" ? "bg-white pulse-dot" : "bg-current opacity-60"}`} />
       {s.label}
     </div>
   );
 }
 
-function PlayerChip({ label, side, active }: { label: string; side: "me" | "foe"; active: boolean }) {
+function PlayerChip({ label, side, active, compact }: { label: string; side: "me" | "foe"; active: boolean; compact?: boolean }) {
   return (
-    <span className={`px-3 py-1.5 rounded-full text-sm sans font-medium border ${active ? "border-rose bg-shell text-rose" : "border-line bg-surface text-ink"}`}>
-      <span className={`mr-1.5 ${side === "me" ? "text-rose" : "text-muted"}`}>●</span>
+    <span className={`px-2.5 md:px-3 ${compact ? "py-1" : "py-1.5"} rounded-full ${compact ? "text-xs" : "text-sm"} sans font-medium border whitespace-nowrap ${active ? "border-rose bg-shell text-rose" : "border-line bg-surface text-ink"}`}>
+      <span className={`mr-1 ${side === "me" ? "text-rose" : "text-muted"}`}>●</span>
       {label}
     </span>
   );
@@ -178,27 +193,27 @@ function WaitingPanel({ code }: { code: string }) {
   const [copied, setCopied] = useState(false);
   function copy() { navigator.clipboard?.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 1500); }
   return (
-    <div className="grid md:grid-cols-2 gap-10 py-10 md:py-16 items-center">
+    <div className="grid md:grid-cols-2 gap-8 md:gap-10 py-8 md:py-16 items-center">
       <div className="fade-up">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-shell text-rose text-xs sans font-medium mb-6">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-shell text-rose text-xs sans font-medium mb-5">
           <span className="w-1.5 h-1.5 rounded-full bg-rose pulse-dot" /> Warte auf Mitspieler
         </div>
-        <h2 className="font-medium tracking-tight text-ink text-5xl md:text-6xl leading-[0.95]">
+        <h2 className="font-medium tracking-tight text-ink text-4xl md:text-6xl leading-[0.95]">
           Teile den
           <br/>
           <span className="serif-it text-rose font-normal">Raumcode.</span>
         </h2>
-        <p className="mt-6 text-muted text-lg max-w-md">
+        <p className="mt-5 text-muted text-base md:text-lg max-w-md">
           Sobald dein Gegner beitritt, könnt ihr eure Schiffe platzieren.
         </p>
       </div>
-      <div className="bg-surface border border-line rounded-3xl shadow-soft p-8 fade-up">
+      <div className="bg-surface border border-line rounded-3xl shadow-soft p-6 md:p-8 fade-up">
         <div className="text-xs sans uppercase tracking-wider text-muted mb-3">Raumcode</div>
-        <div className="mono text-ink text-5xl md:text-7xl tracking-[0.25em] leading-none">{code}</div>
-        <button onClick={copy} className="mt-7 w-full sans font-medium bg-rose text-white py-3.5 rounded-xl hover:bg-coral transition">
+        <div className="mono text-ink text-4xl md:text-7xl tracking-[0.2em] md:tracking-[0.25em] leading-none">{code}</div>
+        <button onClick={copy} className="mt-6 w-full sans font-medium bg-rose text-white py-3.5 rounded-xl hover:bg-coral transition">
           {copied ? "Kopiert ✓" : "Code kopieren"}
         </button>
-        <div className="mt-6 flex items-center gap-2 text-sm text-muted">
+        <div className="mt-5 flex items-center gap-2 text-sm text-muted">
           <span className="w-2 h-2 rounded-full bg-rose pulse-dot" /> Verbindung aktiv
         </div>
       </div>
@@ -225,9 +240,20 @@ function PlacementPanel(props: {
   const [busy, setBusy] = useState(false);
   const me = view.you !== null ? view.players[view.you] : null;
   const allPlaced = SHIP_SPECS.every(spec => localShips.some(s => s.key === spec.key));
+  const opponent = view.players[1 - (view.you ?? 0)];
 
-  function handleClick(x: number, y: number) {
-    if (!selectedShip) return;
+  function placeAt(x: number, y: number) {
+    if (!selectedShip) {
+      const ship = localShips.find(s => shipCells(s).some(c => c.x === x && c.y === y));
+      if (ship) { setLocalShips(localShips.filter(s => s.key !== ship.key)); setSelectedShip(ship.key); }
+      return;
+    }
+    const existingHere = localShips.find(s => shipCells(s).some(c => c.x === x && c.y === y));
+    if (existingHere && existingHere.key !== selectedShip) {
+      setLocalShips(localShips.filter(s => s.key !== existingHere.key));
+      setSelectedShip(existingHere.key);
+      return;
+    }
     const spec = SHIP_SPECS.find(s => s.key === selectedShip)!;
     const others = localShips.filter(s => s.key !== selectedShip);
     const cand = { key: selectedShip, x, y, orientation };
@@ -237,11 +263,6 @@ function PlacementPanel(props: {
     setLocalShips(updated);
     const nextSpec = SHIP_SPECS.find(s => !updated.some(u => u.key === s.key));
     setSelectedShip(nextSpec ? nextSpec.key : null);
-  }
-
-  function removeShip(key: ShipKey) {
-    setLocalShips(localShips.filter(s => s.key !== key));
-    setSelectedShip(key);
   }
 
   async function send(action: string, ships?: PlacedShip[]) {
@@ -273,10 +294,9 @@ function PlacementPanel(props: {
     await send("set", localShips);
     await send("ready");
   }
-
   async function unready() { await send("unready"); }
 
-  const previewCells = useMemo(() => {
+  const preview = useMemo(() => {
     if (!hover || !selectedShip) return null;
     const spec = SHIP_SPECS.find(s => s.key === selectedShip)!;
     const cells: { x: number; y: number }[] = [];
@@ -292,39 +312,34 @@ function PlacementPanel(props: {
   }, [hover, selectedShip, orientation, localShips]);
 
   return (
-    <div className="grid lg:grid-cols-[1fr,360px] gap-8">
-      <div className="fade-up">
-        <h2 className="text-3xl md:text-4xl tracking-tight text-ink font-medium leading-tight mb-1">
+    <div className="grid lg:grid-cols-[1fr,340px] gap-5 md:gap-8 items-start">
+      <div className="fade-up min-w-0">
+        <h2 className="text-2xl md:text-4xl tracking-tight text-ink font-medium leading-tight mb-1">
           Setze deine <span className="serif-it text-rose font-normal">Flotte</span>
         </h2>
-        <p className="text-muted text-sm mb-6">Klicken um zu setzen · auf Schiff klicken um zu entfernen · <kbd className="px-1.5 py-0.5 text-xs border border-line rounded bg-surface">R</kbd> rotiert</p>
-        <div className="bg-surface border border-line rounded-2xl shadow-soft p-4 md:p-6 inline-block">
-          <Grid
-            cells={(x, y) => {
-              const ship = localShips.find(s => shipCells(s).some(c => c.x === x && c.y === y));
-              const preview = previewCells?.cells.some(c => c.x === x && c.y === y);
-              const valid = previewCells?.valid;
-              return (
-                <div
-                  className={[
-                    "relative w-full aspect-square rounded-[5px] transition-colors border",
-                    ship ? "bg-ink border-ink" : "bg-ocean/40 border-wave/60 hover:bg-ocean",
-                    preview ? (valid ? "ring-2 ring-rose ring-offset-1 bg-blush/60" : "ring-2 ring-rose/50 bg-rose/20") : "",
-                  ].join(" ")}
-                  onClick={() => ship ? removeShip(ship.key) : handleClick(x, y)}
-                  onMouseEnter={() => setHover({ x, y })}
-                  onMouseLeave={() => setHover(null)}
-                />
-              );
-            }}
+        <p className="text-muted text-xs md:text-sm mb-4 md:mb-6">
+          Tippen zum Platzieren · auf Schiff tippen zum Entfernen · <kbd className="px-1.5 py-0.5 text-xs border border-line rounded bg-surface">R</kbd> rotiert
+        </p>
+        <div className="bg-surface border border-line rounded-2xl md:rounded-3xl shadow-soft p-3 md:p-5">
+          <CanvasBoard
+            mode="placement"
+            ships={localShips}
+            preview={preview}
+            onCellClick={placeAt}
+            onHover={setHover}
           />
         </div>
       </div>
 
-      <aside className="space-y-4">
-        <div className="bg-surface border border-line rounded-2xl p-5 shadow-soft">
-          <div className="text-xs sans font-medium text-muted uppercase tracking-wider mb-3">Flotte</div>
-          <ul className="space-y-2">
+      <aside className="space-y-3 md:space-y-4 lg:sticky lg:top-28">
+        <div className="bg-surface border border-line rounded-2xl p-4 md:p-5 shadow-soft">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-xs sans font-medium text-muted uppercase tracking-wider">Flotte</div>
+            <button onClick={() => setOrientation(orientation === "H" ? "V" : "H")} className="text-xs sans font-medium text-rose hover:text-coral">
+              {orientation === "H" ? "↔ Horizontal" : "↕ Vertikal"} · R
+            </button>
+          </div>
+          <ul className="space-y-1.5">
             {SHIP_SPECS.map(spec => {
               const placed = localShips.some(s => s.key === spec.key);
               const active = selectedShip === spec.key;
@@ -337,13 +352,13 @@ function PlacementPanel(props: {
                       active ? "border-rose bg-shell" : "border-line hover:border-rose/40 bg-surface",
                     ].join(" ")}
                   >
-                    <span className="flex items-center gap-2.5">
-                      <span className={`w-2 h-2 rounded-full ${placed ? "bg-rose" : "bg-line"}`} />
-                      <span className="sans font-medium text-ink text-sm">{spec.name}</span>
+                    <span className="flex items-center gap-2.5 min-w-0">
+                      <span className={`w-2 h-2 rounded-full shrink-0 ${placed ? "bg-rose" : "bg-line"}`} />
+                      <span className="sans font-medium text-ink text-sm truncate">{spec.name}</span>
                     </span>
-                    <span className="flex gap-0.5">
+                    <span className="flex gap-0.5 shrink-0">
                       {Array.from({ length: spec.length }).map((_, i) => (
-                        <span key={i} className={`w-3 h-3 rounded-sm ${placed ? "bg-ink" : "bg-line"}`} />
+                        <span key={i} className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-sm ${placed ? "bg-ink" : "bg-line"}`} />
                       ))}
                     </span>
                   </button>
@@ -351,25 +366,17 @@ function PlacementPanel(props: {
               );
             })}
           </ul>
-        </div>
-
-        <div className="bg-surface border border-line rounded-2xl p-5 shadow-soft space-y-3">
-          <div className="text-xs sans font-medium text-muted uppercase tracking-wider">Ausrichtung</div>
-          <div className="grid grid-cols-2 gap-2">
-            <button onClick={() => setOrientation("H")} className={`py-2.5 rounded-xl sans font-medium text-sm border transition ${orientation === "H" ? "bg-ink text-paper border-ink" : "border-line text-ink hover:border-rose"}`}>↔ Horizontal</button>
-            <button onClick={() => setOrientation("V")} className={`py-2.5 rounded-xl sans font-medium text-sm border transition ${orientation === "V" ? "bg-ink text-paper border-ink" : "border-line text-ink hover:border-rose"}`}>↕ Vertikal</button>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2 mt-3">
             <button onClick={randomize} disabled={busy} className="py-2.5 rounded-xl sans text-sm border border-line text-ink hover:border-rose disabled:opacity-40 transition">⤬ Zufällig</button>
             <button onClick={() => setLocalShips([])} disabled={busy || !localShips.length} className="py-2.5 rounded-xl sans text-sm border border-line text-ink hover:border-rose disabled:opacity-40 transition">Löschen</button>
           </div>
         </div>
 
-        <div className="bg-surface border border-line rounded-2xl p-5 shadow-soft">
+        <div className="bg-surface border border-line rounded-2xl p-4 md:p-5 shadow-soft">
           <div className="text-xs sans font-medium text-muted uppercase tracking-wider mb-3">Bereit?</div>
           <div className="text-sm text-muted mb-4 space-y-1">
             <div className="flex items-center gap-2"><span className={`w-1.5 h-1.5 rounded-full ${me?.ready ? "bg-rose" : "bg-line"}`} /> Du: <span className={me?.ready ? "text-rose font-medium" : ""}>{me?.ready ? "bereit" : "nicht bereit"}</span></div>
-            <div className="flex items-center gap-2"><span className={`w-1.5 h-1.5 rounded-full ${view.players[1 - (view.you ?? 0)]?.ready ? "bg-rose" : "bg-line"}`} /> Gegner: <span className={view.players[1 - (view.you ?? 0)]?.ready ? "text-rose font-medium" : ""}>{view.players[1 - (view.you ?? 0)]?.ready ? "bereit" : "wartet"}</span></div>
+            <div className="flex items-center gap-2"><span className={`w-1.5 h-1.5 rounded-full ${opponent?.ready ? "bg-rose" : "bg-line"}`} /> Gegner: <span className={opponent?.ready ? "text-rose font-medium" : ""}>{opponent?.ready ? "bereit" : "wartet"}</span></div>
           </div>
           {!me?.ready ? (
             <button onClick={ready} disabled={!allPlaced || busy} className="w-full sans font-medium text-base py-3.5 bg-rose text-white rounded-xl disabled:opacity-30 hover:bg-coral transition">
@@ -423,67 +430,39 @@ function BattlePanel(props: {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid lg:grid-cols-2 gap-6">
-        <BoardCard title="Gegnerische Gewässer" sub="Klicke ein Feld zum Feuern" active={myTurn}>
-          <Grid
-            cells={(x, y) => {
-              const cell = view.enemyGrid[y][x];
-              const isLast = lastShot && lastShot.x === x && lastShot.y === y;
-              const clickable = myTurn && cell.state === "leer" && !busy;
-              return (
-                <button
-                  disabled={!clickable}
-                  onClick={() => fire(x, y)}
-                  className={[
-                    "relative w-full aspect-square rounded-[5px] transition border",
-                    cell.state === "leer" ? (clickable ? "bg-ocean/40 border-wave/60 hover:bg-shell hover:border-rose cursor-crosshair" : "bg-ocean/40 border-wave/60") : "",
-                    cell.state === "treffer" ? "bg-rose border-rose text-white" : "",
-                    cell.state === "versenkt" ? "bg-ink border-ink text-rose" : "",
-                    cell.state === "verfehlt" ? "bg-cream border-line" : "",
-                    isLast && cell.state === "treffer" ? "pop-in" : "",
-                  ].join(" ")}
-                >
-                  {cell.state === "treffer" && <span className="absolute inset-0 flex items-center justify-center text-base font-bold">✕</span>}
-                  {cell.state === "versenkt" && <span className="absolute inset-0 flex items-center justify-center text-base font-bold">✕</span>}
-                  {cell.state === "verfehlt" && <span className="absolute inset-0 flex items-center justify-center text-muted">·</span>}
-                </button>
-              );
-            }}
+    <div className="space-y-4 md:space-y-6">
+      <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
+        <BoardCard title="Gegnerische Gewässer" sub={myTurn ? "Tippe ein Feld" : "Warte auf Zug"} active={myTurn} order="md:order-1">
+          <CanvasBoard
+            mode="enemy"
+            enemyGrid={view.enemyGrid}
+            onCellClick={fire}
+            interactive={myTurn && !busy}
+            active={myTurn}
+            flashCell={lastShot}
           />
         </BoardCard>
 
-        <BoardCard title="Deine Flotte" sub="Eingehende Schüsse" active={!myTurn}>
-          <Grid
-            cells={(x, y) => {
-              const ship = view.yourBoard?.ships.find(s => shipCells(s).some(c => c.x === x && c.y === y));
-              const incoming = view.yourBoard?.incoming.find(i => i.x === x && i.y === y);
-              return (
-                <div className={[
-                  "relative w-full aspect-square rounded-[5px] border",
-                  ship && !incoming?.hit ? "bg-ink border-ink" : "",
-                  !ship && !incoming ? "bg-ocean/40 border-wave/60" : "",
-                  incoming?.hit ? "bg-rose border-rose text-white" : "",
-                  incoming && !incoming.hit ? "bg-cream border-line" : "",
-                ].join(" ")}>
-                  {incoming?.hit && <span className="absolute inset-0 flex items-center justify-center text-base font-bold">✕</span>}
-                  {incoming && !incoming.hit && <span className="absolute inset-0 flex items-center justify-center text-muted">·</span>}
-                </div>
-              );
-            }}
+        <BoardCard title="Deine Flotte" sub="Eingehende Schüsse" active={!myTurn} order="md:order-2">
+          <CanvasBoard
+            mode="own"
+            ships={view.yourBoard?.ships ?? []}
+            incoming={view.yourBoard?.incoming ?? []}
+            interactive={false}
+            active={!myTurn}
           />
         </BoardCard>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 md:gap-4">
-        <Stat label="Feindliche Schiffe versenkt" value={`${enemy?.shipsSunk ?? 0} / ${enemy?.shipsTotal ?? 5}`} accent />
-        <Stat label="Eigene Verluste" value={`${me?.shipsSunk ?? 0} / ${me?.shipsTotal ?? 5}`} />
-        <Stat label="Schüsse abgegeben" value={`${view.yourShots.length}`} />
+      <div className="grid grid-cols-3 gap-2 md:gap-4">
+        <Stat label="Versenkt" value={`${enemy?.shipsSunk ?? 0}/${enemy?.shipsTotal ?? 5}`} accent />
+        <Stat label="Verloren" value={`${me?.shipsSunk ?? 0}/${me?.shipsTotal ?? 5}`} />
+        <Stat label="Schüsse" value={`${view.yourShots.length}`} />
       </div>
 
       {feedback && (
         <div className={[
-          "fixed bottom-8 left-1/2 -translate-x-1/2 z-40 px-6 py-3 rounded-full shadow-soft sans font-medium text-base pop-in",
+          "fixed bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 z-40 px-5 md:px-6 py-3 rounded-full shadow-soft sans font-medium text-sm md:text-base pop-in whitespace-nowrap",
           feedback.tone === "sunk" ? "bg-ink text-paper" : feedback.tone === "hit" ? "bg-rose text-white" : "bg-surface border border-line text-ink",
         ].join(" ")}>
           {feedback.text}
@@ -493,15 +472,15 @@ function BattlePanel(props: {
   );
 }
 
-function BoardCard({ title, sub, active, children }: { title: string; sub: string; active: boolean; children: React.ReactNode }) {
+function BoardCard({ title, sub, active, order, children }: { title: string; sub: string; active: boolean; order?: string; children: React.ReactNode }) {
   return (
-    <div className={`bg-surface border ${active ? "border-rose" : "border-line"} rounded-3xl shadow-soft p-5 md:p-6 transition`}>
-      <div className="flex items-end justify-between mb-4">
-        <div>
-          <div className="sans font-medium text-ink">{title}</div>
-          <div className="text-xs text-muted">{sub}</div>
+    <div className={`bg-surface border ${active ? "border-rose" : "border-line"} rounded-2xl md:rounded-3xl shadow-soft p-3 md:p-5 transition ${order ?? ""}`}>
+      <div className="flex items-end justify-between mb-3">
+        <div className="min-w-0">
+          <div className="sans font-medium text-ink text-sm md:text-base">{title}</div>
+          <div className="text-xs text-muted truncate">{sub}</div>
         </div>
-        <div className={`text-[10px] sans uppercase tracking-wider ${active ? "text-rose" : "text-muted"}`}>{active ? "● aktiv" : "pause"}</div>
+        <div className={`text-[10px] sans uppercase tracking-wider shrink-0 ${active ? "text-rose" : "text-muted"}`}>{active ? "● aktiv" : "pause"}</div>
       </div>
       {children}
     </div>
@@ -510,9 +489,9 @@ function BoardCard({ title, sub, active, children }: { title: string; sub: strin
 
 function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className={`rounded-2xl border p-4 md:p-5 ${accent ? "bg-shell border-rose/20" : "bg-surface border-line"} shadow-soft`}>
-      <div className="text-[10px] sans uppercase tracking-wider text-muted mb-2">{label}</div>
-      <div className={`serif text-3xl md:text-4xl leading-none ${accent ? "text-rose" : "text-ink"}`}>{value}</div>
+    <div className={`rounded-xl md:rounded-2xl border p-3 md:p-5 ${accent ? "bg-shell border-rose/20" : "bg-surface border-line"} shadow-soft`}>
+      <div className="text-[10px] sans uppercase tracking-wider text-muted mb-1 md:mb-2 truncate">{label}</div>
+      <div className={`serif text-2xl md:text-4xl leading-none ${accent ? "text-rose" : "text-ink"}`}>{value}</div>
     </div>
   );
 }
@@ -520,18 +499,18 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
 function EndPanel({ view }: { view: PublicView }) {
   const youWon = view.you !== null && view.winner === view.you;
   return (
-    <div className="py-12 md:py-20 grid md:grid-cols-2 gap-10 items-center fade-up">
+    <div className="py-8 md:py-20 grid md:grid-cols-2 gap-8 md:gap-10 items-center fade-up">
       <div>
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-shell text-rose text-xs sans font-medium mb-6">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-shell text-rose text-xs sans font-medium mb-5">
           Spielbericht
         </div>
-        <h2 className="font-medium tracking-tight text-ink text-6xl md:text-7xl leading-[0.95]">
+        <h2 className="font-medium tracking-tight text-ink text-5xl md:text-7xl leading-[0.95]">
           {youWon ? <>Du hast<br/><span className="serif-it text-rose font-normal">gewonnen.</span></> : <>Knappe<br/><span className="serif-it text-rose font-normal">Niederlage.</span></>}
         </h2>
-        <p className="mt-6 text-muted text-lg max-w-md">
+        <p className="mt-5 text-muted text-base md:text-lg max-w-md">
           {youWon ? "Feindliche Flotte versenkt — Glückwunsch, Kapitän." : "Deine Flotte ist gesunken. Eine Revanche?"}
         </p>
-        <div className="mt-8 flex gap-3">
+        <div className="mt-7 flex gap-3">
           <a href="/" className="sans font-medium bg-rose text-white px-5 py-3.5 rounded-xl hover:bg-coral transition">Neues Spiel →</a>
         </div>
       </div>
@@ -540,43 +519,15 @@ function EndPanel({ view }: { view: PublicView }) {
         <ul className="space-y-3">
           {view.players.map((p, i) => (
             <li key={i} className="flex items-center justify-between border-b border-line/70 pb-3 last:border-0 last:pb-0">
-              <span className="flex items-center gap-2">
-                <span className={`w-1.5 h-1.5 rounded-full ${view.winner === i ? "bg-rose" : "bg-line"}`} />
-                <span className={`sans font-medium ${view.you === i ? "text-rose" : "text-ink"}`}>{p.name}</span>
+              <span className="flex items-center gap-2 min-w-0">
+                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${view.winner === i ? "bg-rose" : "bg-line"}`} />
+                <span className={`sans font-medium truncate ${view.you === i ? "text-rose" : "text-ink"}`}>{p.name}</span>
               </span>
-              <span className="text-muted text-sm">{p.shipsSunk} / {p.shipsTotal} versenkt</span>
+              <span className="text-muted text-sm shrink-0">{p.shipsSunk} / {p.shipsTotal}</span>
             </li>
           ))}
         </ul>
       </div>
     </div>
-  );
-}
-
-function Grid({ cells }: { cells: (x: number, y: number) => React.ReactNode }) {
-  const letters = "ABCDEFGHIJ".split("");
-  return (
-    <div className="w-full max-w-[480px]">
-      <div className="grid gap-[3px]" style={{ gridTemplateColumns: `1.2rem repeat(${GRID}, minmax(0, 1fr))` }}>
-        <div />
-        {letters.map(l => (
-          <div key={l} className="text-center text-[10px] mono text-muted pb-1">{l}</div>
-        ))}
-        {Array.from({ length: GRID }).map((_, y) => (
-          <ROW key={y} y={y} cells={cells} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ROW({ y, cells }: { y: number; cells: (x: number, y: number) => React.ReactNode }) {
-  return (
-    <>
-      <div className="text-center text-[10px] mono text-muted pr-1 flex items-center justify-center">{y + 1}</div>
-      {Array.from({ length: GRID }).map((_, x) => (
-        <div key={x} className="min-w-0">{cells(x, y)}</div>
-      ))}
-    </>
   );
 }
