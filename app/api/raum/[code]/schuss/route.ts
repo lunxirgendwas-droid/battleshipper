@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
-  const room = getRoom(code);
+  const room = await getRoom(code);
   if (!room) return NextResponse.json({ error: "Raum nicht gefunden." }, { status: 404 });
 
   const body = await req.json().catch(() => ({}));
@@ -19,6 +19,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cod
 
   const result = fireShot(room, idx as 0 | 1, x, y);
   if (!result.ok) return NextResponse.json({ error: result.reason }, { status: 400 });
-  saveRoom(room);
+  await saveRoom(room);
   return NextResponse.json(result);
 }
