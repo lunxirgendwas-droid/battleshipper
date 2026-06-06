@@ -20,9 +20,16 @@ interface Props {
 }
 
 function cssVar(name: string): string {
-  if (typeof window === "undefined") return "#000";
-  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  return v ? `rgb(${v})` : "#000";
+  if (typeof window === "undefined") return "0 0 0";
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "0 0 0";
+}
+
+function rgb(triplet: string): string {
+  return `rgb(${triplet.replace(/\s+/g, ",")})`;
+}
+
+function rgba(triplet: string, a: number): string {
+  return `rgba(${triplet.replace(/\s+/g, ",")},${a})`;
 }
 
 export default function CanvasBoard({
@@ -97,7 +104,7 @@ export default function CanvasBoard({
     const COL_SURFACE = cssVar("--surface");
 
     ctx.font = `500 ${Math.max(9, Math.floor(labelPad * 0.42))}px "Geist Mono", monospace`;
-    ctx.fillStyle = COL_MUTED;
+    ctx.fillStyle = rgb(COL_MUTED);
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     const letters = "ABCDEFGHIJ";
@@ -113,9 +120,9 @@ export default function CanvasBoard({
         const inset = Math.max(1.5, cell * 0.05);
         const r = Math.max(2, cell * 0.12);
         roundRect(ctx, px + inset, py + inset, cell - inset * 2, cell - inset * 2, r);
-        ctx.fillStyle = withAlpha(COL_OCEAN, 0.45);
+        ctx.fillStyle = rgba(COL_OCEAN, 0.45);
         ctx.fill();
-        ctx.strokeStyle = withAlpha(COL_WAVE, 0.6);
+        ctx.strokeStyle = rgba(COL_WAVE, 0.6);
         ctx.lineWidth = 1;
         ctx.stroke();
       }
@@ -136,15 +143,15 @@ export default function CanvasBoard({
         roundRect(ctx, px, py, sw, sh, r);
         const grad = ctx.createLinearGradient(px, py, px + sw, py + sh);
         if (allHit) {
-          grad.addColorStop(0, COL_ROSE);
-          grad.addColorStop(1, COL_CORAL);
+          grad.addColorStop(0, rgb(COL_ROSE));
+          grad.addColorStop(1, rgb(COL_CORAL));
         } else {
-          grad.addColorStop(0, COL_INK);
-          grad.addColorStop(1, withAlpha(COL_INK, 0.85));
+          grad.addColorStop(0, rgb(COL_INK));
+          grad.addColorStop(1, rgba(COL_INK, 0.85));
         }
         ctx.fillStyle = grad;
         ctx.fill();
-        ctx.strokeStyle = withAlpha(COL_LINE, 0.3);
+        ctx.strokeStyle = rgba(COL_LINE, 0.3);
         ctx.lineWidth = 1;
         ctx.stroke();
       }
@@ -167,22 +174,22 @@ export default function CanvasBoard({
           const r = Math.max(3, cell * 0.18);
           if (c.state === "versenkt") {
             roundRect(ctx, px + inset, py + inset, cell - inset * 2, cell - inset * 2, r);
-            ctx.fillStyle = COL_INK;
+            ctx.fillStyle = rgb(COL_INK);
             ctx.fill();
-            drawX(ctx, px + cell / 2, py + cell / 2, cell * 0.28, COL_ROSE, cell * 0.10);
+            drawX(ctx, px + cell / 2, py + cell / 2, cell * 0.28, rgb(COL_ROSE), cell * 0.10);
           } else if (c.state === "treffer") {
             roundRect(ctx, px + inset, py + inset, cell - inset * 2, cell - inset * 2, r);
             const grad = ctx.createLinearGradient(px, py, px + cell, py + cell);
-            grad.addColorStop(0, COL_ROSE);
-            grad.addColorStop(1, COL_CORAL);
+            grad.addColorStop(0, rgb(COL_ROSE));
+            grad.addColorStop(1, rgb(COL_CORAL));
             ctx.fillStyle = grad;
             ctx.fill();
-            drawX(ctx, px + cell / 2, py + cell / 2, cell * 0.24, COL_SURFACE, cell * 0.10);
+            drawX(ctx, px + cell / 2, py + cell / 2, cell * 0.24, rgb(COL_SURFACE), cell * 0.10);
           } else if (c.state === "verfehlt") {
             roundRect(ctx, px + inset, py + inset, cell - inset * 2, cell - inset * 2, r);
-            ctx.fillStyle = withAlpha(COL_CREAM, 0.8);
+            ctx.fillStyle = rgba(COL_CREAM, 0.8);
             ctx.fill();
-            ctx.fillStyle = withAlpha(COL_MUTED, 0.7);
+            ctx.fillStyle = rgba(COL_MUTED, 0.7);
             ctx.beginPath();
             ctx.arc(px + cell / 2, py + cell / 2, cell * 0.07, 0, Math.PI * 2);
             ctx.fill();
@@ -192,8 +199,8 @@ export default function CanvasBoard({
     }
 
     if (preview && mode === "placement") {
-      const stroke = preview.valid ? COL_ROSE : withAlpha(COL_ROSE, 0.5);
-      const fill = preview.valid ? withAlpha(COL_BLUSH, 0.5) : withAlpha(COL_ROSE, 0.18);
+      const stroke = preview.valid ? rgb(COL_ROSE) : rgba(COL_ROSE, 0.5);
+      const fill = preview.valid ? rgba(COL_BLUSH, 0.5) : rgba(COL_ROSE, 0.18);
       for (const c of preview.cells) {
         if (c.x < 0 || c.y < 0 || c.x >= GRID || c.y >= GRID) continue;
         const px = ox + c.x * cell;
@@ -215,7 +222,7 @@ export default function CanvasBoard({
       const px = ox + flashCell.x * cell + cell / 2;
       const py = oy + flashCell.y * cell + cell / 2;
       const radius = cell * (0.4 + t * 1.8);
-      ctx.strokeStyle = withAlpha(COL_ROSE, 1 - t);
+      ctx.strokeStyle = rgba(COL_ROSE, 1 - t);
       ctx.lineWidth = Math.max(1, 3 * (1 - t));
       ctx.beginPath();
       ctx.arc(px, py, radius, 0, Math.PI * 2);
@@ -223,7 +230,7 @@ export default function CanvasBoard({
     }
 
     if (!active) {
-      ctx.fillStyle = withAlpha(COL_INK, 0.04);
+      ctx.fillStyle = rgba(COL_INK, 0.04);
       ctx.fillRect(0, 0, w, h);
     }
   }, [size, themeTick, mode, ships, incoming, enemyGrid, preview, active, flashCell, flashStart]);
@@ -296,23 +303,17 @@ function drawX(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number,
   ctx.stroke();
 }
 
-function drawMark(ctx: CanvasRenderingContext2D, px: number, py: number, cell: number, kind: "hit" | "miss", roseCol: string, mutedCol: string) {
+function drawMark(ctx: CanvasRenderingContext2D, px: number, py: number, cell: number, kind: "hit" | "miss", roseTriplet: string, mutedTriplet: string) {
   if (kind === "hit") {
-    ctx.fillStyle = withAlpha(roseCol, 0.6);
+    ctx.fillStyle = rgba(roseTriplet, 0.6);
     ctx.beginPath();
     ctx.arc(px + cell / 2, py + cell / 2, cell * 0.32, 0, Math.PI * 2);
     ctx.fill();
     drawX(ctx, px + cell / 2, py + cell / 2, cell * 0.22, "#fff", cell * 0.10);
   } else {
-    ctx.fillStyle = withAlpha(mutedCol, 0.55);
+    ctx.fillStyle = rgba(mutedTriplet, 0.55);
     ctx.beginPath();
     ctx.arc(px + cell / 2, py + cell / 2, cell * 0.08, 0, Math.PI * 2);
     ctx.fill();
   }
-}
-
-function withAlpha(rgbStr: string, a: number): string {
-  const m = rgbStr.match(/rgb\(([^)]+)\)/);
-  if (!m) return rgbStr;
-  return `rgba(${m[1]}, ${a})`;
 }
