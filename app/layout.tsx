@@ -6,9 +6,20 @@ export const metadata: Metadata = {
   description: "Zwei Kapitäne. Ein Ozean. Ein Sieger.",
 };
 
+const themeScript = `
+(function(){try{
+  var s = localStorage.getItem('battleshipper_theme');
+  var d = s ? s === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (d) document.documentElement.classList.add('dark');
+}catch(e){}})();
+`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="de">
+    <html lang="de" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body className="relative">{children}</body>
     </html>
   );

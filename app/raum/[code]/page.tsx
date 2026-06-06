@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { getPlayerId, getStoredName } from "@/lib/playerId";
 import { GRID, Orientation, PlacedShip, PublicView, SHIP_SPECS, ShipKey } from "@/lib/types";
 import { canPlace, randomFleet, shipCells } from "@/lib/game";
+import ThemeToggle from "../../ThemeToggle";
 
 type Phase = PublicView["status"];
 
@@ -68,7 +69,7 @@ export default function RoomPage() {
   if (error) {
     return (
       <main className="min-h-screen flex items-center justify-center px-6">
-        <div className="bg-white border border-line rounded-3xl p-8 max-w-md shadow-soft text-center">
+        <div className="bg-surface border border-line rounded-3xl p-8 max-w-md shadow-soft text-center">
           <div className="serif-it text-rose text-4xl mb-2">Oh nein.</div>
           <p className="text-muted">{error}</p>
           <button onClick={() => router.push("/")} className="mt-6 sans font-medium bg-rose text-white px-5 py-3 rounded-xl hover:bg-coral transition">
@@ -142,6 +143,7 @@ function TopBar({ code, view }: { code: string; view: PublicView }) {
         <PlayerChip label={me?.name || "—"} side="me" active={view.you !== null && view.turn === view.you && view.status === "spielen"} />
         <span className="serif-it text-muted">vs</span>
         <PlayerChip label={enemy?.name || "wartet"} side="foe" active={view.you !== null && view.turn !== view.you && view.status === "spielen"} />
+        <ThemeToggle className="ml-1" />
       </div>
     </header>
   );
@@ -157,7 +159,7 @@ function StatusBadge({ status, turnMe }: { status: Phase; turnMe: boolean }) {
   const s = map[status];
   return (
     <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${s.color} sans font-medium text-sm`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${turnMe && status === "spielen" ? "bg-white pulse-dot" : "bg-current opacity-60"}`} />
+      <span className={`w-1.5 h-1.5 rounded-full ${turnMe && status === "spielen" ? "bg-surface pulse-dot" : "bg-current opacity-60"}`} />
       {s.label}
     </div>
   );
@@ -165,7 +167,7 @@ function StatusBadge({ status, turnMe }: { status: Phase; turnMe: boolean }) {
 
 function PlayerChip({ label, side, active }: { label: string; side: "me" | "foe"; active: boolean }) {
   return (
-    <span className={`px-3 py-1.5 rounded-full text-sm sans font-medium border ${active ? "border-rose bg-shell text-rose" : "border-line bg-white text-ink"}`}>
+    <span className={`px-3 py-1.5 rounded-full text-sm sans font-medium border ${active ? "border-rose bg-shell text-rose" : "border-line bg-surface text-ink"}`}>
       <span className={`mr-1.5 ${side === "me" ? "text-rose" : "text-muted"}`}>●</span>
       {label}
     </span>
@@ -190,7 +192,7 @@ function WaitingPanel({ code }: { code: string }) {
           Sobald dein Gegner beitritt, könnt ihr eure Schiffe platzieren.
         </p>
       </div>
-      <div className="bg-white border border-line rounded-3xl shadow-soft p-8 fade-up">
+      <div className="bg-surface border border-line rounded-3xl shadow-soft p-8 fade-up">
         <div className="text-xs sans uppercase tracking-wider text-muted mb-3">Raumcode</div>
         <div className="mono text-ink text-5xl md:text-7xl tracking-[0.25em] leading-none">{code}</div>
         <button onClick={copy} className="mt-7 w-full sans font-medium bg-rose text-white py-3.5 rounded-xl hover:bg-coral transition">
@@ -295,8 +297,8 @@ function PlacementPanel(props: {
         <h2 className="text-3xl md:text-4xl tracking-tight text-ink font-medium leading-tight mb-1">
           Setze deine <span className="serif-it text-rose font-normal">Flotte</span>
         </h2>
-        <p className="text-muted text-sm mb-6">Klicken um zu setzen · auf Schiff klicken um zu entfernen · <kbd className="px-1.5 py-0.5 text-xs border border-line rounded bg-white">R</kbd> rotiert</p>
-        <div className="bg-white border border-line rounded-2xl shadow-soft p-4 md:p-6 inline-block">
+        <p className="text-muted text-sm mb-6">Klicken um zu setzen · auf Schiff klicken um zu entfernen · <kbd className="px-1.5 py-0.5 text-xs border border-line rounded bg-surface">R</kbd> rotiert</p>
+        <div className="bg-surface border border-line rounded-2xl shadow-soft p-4 md:p-6 inline-block">
           <Grid
             cells={(x, y) => {
               const ship = localShips.find(s => shipCells(s).some(c => c.x === x && c.y === y));
@@ -320,7 +322,7 @@ function PlacementPanel(props: {
       </div>
 
       <aside className="space-y-4">
-        <div className="bg-white border border-line rounded-2xl p-5 shadow-soft">
+        <div className="bg-surface border border-line rounded-2xl p-5 shadow-soft">
           <div className="text-xs sans font-medium text-muted uppercase tracking-wider mb-3">Flotte</div>
           <ul className="space-y-2">
             {SHIP_SPECS.map(spec => {
@@ -332,7 +334,7 @@ function PlacementPanel(props: {
                     onClick={() => setSelectedShip(spec.key)}
                     className={[
                       "w-full flex items-center justify-between px-3 py-2.5 rounded-xl border transition text-left",
-                      active ? "border-rose bg-shell" : "border-line hover:border-rose/40 bg-white",
+                      active ? "border-rose bg-shell" : "border-line hover:border-rose/40 bg-surface",
                     ].join(" ")}
                   >
                     <span className="flex items-center gap-2.5">
@@ -351,7 +353,7 @@ function PlacementPanel(props: {
           </ul>
         </div>
 
-        <div className="bg-white border border-line rounded-2xl p-5 shadow-soft space-y-3">
+        <div className="bg-surface border border-line rounded-2xl p-5 shadow-soft space-y-3">
           <div className="text-xs sans font-medium text-muted uppercase tracking-wider">Ausrichtung</div>
           <div className="grid grid-cols-2 gap-2">
             <button onClick={() => setOrientation("H")} className={`py-2.5 rounded-xl sans font-medium text-sm border transition ${orientation === "H" ? "bg-ink text-paper border-ink" : "border-line text-ink hover:border-rose"}`}>↔ Horizontal</button>
@@ -363,7 +365,7 @@ function PlacementPanel(props: {
           </div>
         </div>
 
-        <div className="bg-white border border-line rounded-2xl p-5 shadow-soft">
+        <div className="bg-surface border border-line rounded-2xl p-5 shadow-soft">
           <div className="text-xs sans font-medium text-muted uppercase tracking-wider mb-3">Bereit?</div>
           <div className="text-sm text-muted mb-4 space-y-1">
             <div className="flex items-center gap-2"><span className={`w-1.5 h-1.5 rounded-full ${me?.ready ? "bg-rose" : "bg-line"}`} /> Du: <span className={me?.ready ? "text-rose font-medium" : ""}>{me?.ready ? "bereit" : "nicht bereit"}</span></div>
@@ -482,7 +484,7 @@ function BattlePanel(props: {
       {feedback && (
         <div className={[
           "fixed bottom-8 left-1/2 -translate-x-1/2 z-40 px-6 py-3 rounded-full shadow-soft sans font-medium text-base pop-in",
-          feedback.tone === "sunk" ? "bg-ink text-paper" : feedback.tone === "hit" ? "bg-rose text-white" : "bg-white border border-line text-ink",
+          feedback.tone === "sunk" ? "bg-ink text-paper" : feedback.tone === "hit" ? "bg-rose text-white" : "bg-surface border border-line text-ink",
         ].join(" ")}>
           {feedback.text}
         </div>
@@ -493,7 +495,7 @@ function BattlePanel(props: {
 
 function BoardCard({ title, sub, active, children }: { title: string; sub: string; active: boolean; children: React.ReactNode }) {
   return (
-    <div className={`bg-white border ${active ? "border-rose" : "border-line"} rounded-3xl shadow-soft p-5 md:p-6 transition`}>
+    <div className={`bg-surface border ${active ? "border-rose" : "border-line"} rounded-3xl shadow-soft p-5 md:p-6 transition`}>
       <div className="flex items-end justify-between mb-4">
         <div>
           <div className="sans font-medium text-ink">{title}</div>
@@ -508,7 +510,7 @@ function BoardCard({ title, sub, active, children }: { title: string; sub: strin
 
 function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className={`rounded-2xl border p-4 md:p-5 ${accent ? "bg-shell border-rose/20" : "bg-white border-line"} shadow-soft`}>
+    <div className={`rounded-2xl border p-4 md:p-5 ${accent ? "bg-shell border-rose/20" : "bg-surface border-line"} shadow-soft`}>
       <div className="text-[10px] sans uppercase tracking-wider text-muted mb-2">{label}</div>
       <div className={`serif text-3xl md:text-4xl leading-none ${accent ? "text-rose" : "text-ink"}`}>{value}</div>
     </div>
@@ -533,7 +535,7 @@ function EndPanel({ view }: { view: PublicView }) {
           <a href="/" className="sans font-medium bg-rose text-white px-5 py-3.5 rounded-xl hover:bg-coral transition">Neues Spiel →</a>
         </div>
       </div>
-      <div className="bg-white border border-line rounded-3xl shadow-soft p-6 md:p-8">
+      <div className="bg-surface border border-line rounded-3xl shadow-soft p-6 md:p-8">
         <div className="text-xs sans uppercase tracking-wider text-muted mb-4">Endstand</div>
         <ul className="space-y-3">
           {view.players.map((p, i) => (

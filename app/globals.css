@@ -5,44 +5,70 @@
 @tailwind utilities;
 
 :root {
-  --ink: #0e0e0c;
-  --paper: #fbf9f6;
-  --cream: #f4f0e8;
-  --line: #e7e2d8;
-  --muted: #6b6b66;
-  --rose: #ff295c;
-  --coral: #ff5b7a;
-  --blush: #ffd9e1;
-  --shell: #ffeef2;
+  --paper:   251 249 246;
+  --surface: 255 255 255;
+  --cream:   244 240 232;
+  --line:    231 226 216;
+  --ink:      14  14  12;
+  --muted:   107 107 102;
+  --rose:    255  41  92;
+  --coral:   255  91 122;
+  --blush:   255 217 225;
+  --shell:   255 238 242;
+  --ocean:   233 240 244;
+  --wave:    207 221 228;
+  --sea:     120 146 160;
+  --glow-a: rgba(255, 41, 92, 0.10);
+  --glow-b: rgba(255, 91, 122, 0.06);
+}
+
+.dark {
+  --paper:    12  14  18;
+  --surface:  22  25  32;
+  --cream:    28  32  40;
+  --line:     42  48  58;
+  --ink:     240 235 225;
+  --muted:   148 154 162;
+  --rose:    255  82 124;
+  --coral:   255 126 152;
+  --blush:    72  22  38;
+  --shell:    52  18  30;
+  --ocean:    16  22  30;
+  --wave:     36  46  58;
+  --sea:     150 170 184;
+  --glow-a: rgba(255, 82, 124, 0.18);
+  --glow-b: rgba(255, 126, 152, 0.08);
 }
 
 * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
+html { color-scheme: light; }
+html.dark { color-scheme: dark; }
+
 html, body {
-  background: var(--paper);
-  color: var(--ink);
+  background: rgb(var(--paper));
+  color: rgb(var(--ink));
   font-family: "Geist", ui-sans-serif, system-ui, sans-serif;
   min-height: 100vh;
 }
 
 body {
   background-image:
-    radial-gradient(ellipse 60% 35% at 85% 0%, rgba(255, 41, 92, 0.10), transparent 70%),
-    radial-gradient(ellipse 50% 30% at 10% 100%, rgba(255, 91, 122, 0.06), transparent 70%);
+    radial-gradient(ellipse 60% 35% at 85% 0%, var(--glow-a), transparent 70%),
+    radial-gradient(ellipse 50% 30% at 10% 100%, var(--glow-b), transparent 70%);
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 .serif { font-family: "Instrument Serif", ui-serif, Georgia, serif; }
 .sans  { font-family: "Geist", ui-sans-serif, system-ui, sans-serif; }
 .mono  { font-family: "Geist Mono", ui-monospace, monospace; }
-
 .serif-it { font-family: "Instrument Serif", serif; font-style: italic; }
 
 button { cursor: pointer; }
 button:disabled { cursor: not-allowed; }
 
-::selection { background: var(--rose); color: #fff; }
-
-input::placeholder { color: rgba(107, 107, 102, 0.55); }
+::selection { background: rgb(var(--rose)); color: #fff; }
+input::placeholder { color: rgb(var(--muted) / 0.55); }
 
 @keyframes pulse-dot {
   0%, 100% { transform: scale(1); opacity: 1; }
@@ -70,10 +96,5 @@ input::placeholder { color: rgba(107, 107, 102, 0.55); }
 }
 .fade-up { animation: fade-up 0.4s ease-out both; }
 
-.dotted-bg {
-  background-image: radial-gradient(circle at center, rgba(14,14,12,0.08) 1px, transparent 1.5px);
-  background-size: 16px 16px;
-}
-
 .hover-pop { transition: transform 0.15s ease, box-shadow 0.15s ease; }
-.hover-pop:hover { transform: translateY(-2px); box-shadow: 0 8px 24px -10px rgba(14,14,12,0.18); }
+.hover-pop:hover { transform: translateY(-2px); box-shadow: 0 8px 24px -10px rgba(0,0,0,0.18); }

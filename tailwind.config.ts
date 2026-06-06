@@ -1,22 +1,26 @@
 import type { Config } from "tailwindcss";
 
+const c = (v: string) => `rgb(var(${v}) / <alpha-value>)`;
+
 export default {
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
-        ink: "#0e0e0c",
-        paper: "#fbf9f6",
-        cream: "#f4f0e8",
-        line: "#e7e2d8",
-        muted: "#6b6b66",
-        rose: "#ff295c",
-        coral: "#ff5b7a",
-        blush: "#ffd9e1",
-        shell: "#ffeef2",
-        ocean: "#e9f0f4",
-        wave: "#cfdde4",
-        sea: "#7892a0",
+        ink:     c("--ink"),
+        paper:   c("--paper"),
+        surface: c("--surface"),
+        cream:   c("--cream"),
+        line:    c("--line"),
+        muted:   c("--muted"),
+        rose:    c("--rose"),
+        coral:   c("--coral"),
+        blush:   c("--blush"),
+        shell:   c("--shell"),
+        ocean:   c("--ocean"),
+        wave:    c("--wave"),
+        sea:     c("--sea"),
       },
       fontFamily: {
         serif: ['"Instrument Serif"', "ui-serif", "Georgia"],
@@ -24,8 +28,8 @@ export default {
         mono: ['"Geist Mono"', "ui-monospace"],
       },
       boxShadow: {
-        soft: "0 1px 2px rgba(14,14,12,0.04), 0 8px 24px -12px rgba(14,14,12,0.12)",
-        pop: "0 2px 0 rgba(14,14,12,0.9)",
+        soft: "0 1px 2px rgba(0,0,0,0.04), 0 8px 24px -12px rgba(0,0,0,0.12)",
+        pop: "0 2px 0 rgba(0,0,0,0.9)",
       },
     },
   },

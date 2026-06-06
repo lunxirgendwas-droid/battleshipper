@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getPlayerId, getStoredName, setStoredName } from "@/lib/playerId";
+import ThemeToggle from "./ThemeToggle";
 
 export default function HomePage() {
   const router = useRouter();
@@ -57,9 +58,10 @@ export default function HomePage() {
           <Logo />
           <span className="sans font-medium text-ink">Battleshipper</span>
         </div>
-        <div className="hidden md:flex items-center gap-6 text-sm text-muted">
-          <a href="#wie" className="hover:text-ink transition">So funktioniert's</a>
-          <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-rose pulse-dot" /> Live</span>
+        <div className="flex items-center gap-5 text-sm text-muted">
+          <a href="#wie" className="hidden md:inline hover:text-ink transition">So funktioniert's</a>
+          <span className="hidden md:flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-rose pulse-dot" /> Live</span>
+          <ThemeToggle />
         </div>
       </header>
 
@@ -98,7 +100,7 @@ export default function HomePage() {
         </div>
 
         <div className="lg:pt-16">
-          <div className="relative bg-white border border-line rounded-3xl shadow-soft overflow-hidden">
+          <div className="relative bg-surface border border-line rounded-3xl shadow-soft overflow-hidden">
             <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-blush blur-2xl opacity-70" />
             <div className="relative p-7 md:p-9">
               <div className="flex items-center gap-2 mb-7">
@@ -119,7 +121,7 @@ export default function HomePage() {
                   value={name}
                   onChange={e => setName(e.target.value.slice(0, 20))}
                   placeholder="z. B. Mira"
-                  className="w-full bg-cream/60 border border-line rounded-xl px-4 py-3.5 sans text-ink text-base focus:outline-none focus:border-rose focus:bg-white transition"
+                  className="w-full bg-cream/60 border border-line rounded-xl px-4 py-3.5 sans text-ink text-base focus:outline-none focus:border-rose focus:bg-surface transition"
                   maxLength={20}
                 />
               </label>
@@ -131,7 +133,7 @@ export default function HomePage() {
                     value={code}
                     onChange={e => setCode(e.target.value.toUpperCase().replace(/[^A-Z2-9]/g, "").slice(0, 5))}
                     placeholder="ABCDE"
-                    className="w-full bg-cream/60 border border-line rounded-xl px-4 py-3.5 mono text-ink text-2xl tracking-[0.4em] text-center focus:outline-none focus:border-rose focus:bg-white transition"
+                    className="w-full bg-cream/60 border border-line rounded-xl px-4 py-3.5 mono text-ink text-2xl tracking-[0.4em] text-center focus:outline-none focus:border-rose focus:bg-surface transition"
                     maxLength={5}
                   />
                 </label>
